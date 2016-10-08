@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>无标题文档</title>
+<style>
+body,ul,p{margin:0;padding:0;}
+img{display:none;float:left;}
+#box{width:614px;height:148px;margin:30px auto;font-family:Arial, Helvetica, sans-serif;}
+#list2{display:none;}
+#box div{width:292px;height:104px;border:1px solid #c6c6c6;padding:10px 0 0 10px; }
+#top{height:30px;}
+span{display:block;width:80px;height:30px;border:1px solid #c6c6c6;float:left;font-size:14px;line-height:30px;text-align:center;color:#737373;border-bottom:none;}
+.show{width:80px;height:30px;border:1px solid #c6c6c6;border-bottom:none;color:#000;background:#ccc;}
+ul {float:left;width:170px;height:96px;}
+li{width:170px;height:31px;font-size:12px;line-height:30px;margin:0 0 1px 1px;background:#dee7e7;list-style:none;}
+li a{text-decoration:none;color:#8c9191;padding-left:7px;}
+.active{background:#636363;display:block;}
+.active a{color:#fff;}
+.show1{display: block;}
+.hide{display: none;}
+</style>
+<script src="js/tools.js"></script>
+<script>
+
+/*
+
+	请根据要求实现本例效果：
+
+		1，默认自动播放。
+
+		2，两个选项卡自动来回循环切换。
+
+		3，鼠标移入暂停播放，移出接着上一次的位置或者鼠标移出的选项位置继续播放。
+
+		4，鼠标在选项上滑动可以切换选项。
+
+		5. 可扩展
+
+*/
+
+	window.onload = function (){
+
+		var box = $("#box");
+		var top = $("#top");
+		var aDiv = $(".oDiv",box);
+		var allSpan = $("span",top);
+		var n = 0,timer = null;
+		var state = 0;
+
+		// 开始先执行第一个div
+		fn(aDiv[0]);
+		function fn(obj){
+
+			// 分别获取每一个div下所有的li
+			var allLi = $("li",obj);
+			var allImg = $("img",obj);
+
+			// 循环所有的li，清空li的样式，隐藏所有img
+			for( var i = 0; i < allLi.length; i++ ){
+				allLi[i].className = "";
+				allImg[i].className = "";
+			}
+			// 把当前的li的className设置为active，显示对应图片
+			allLi[n].className = "active";
+			allImg[n].className = "active";
+
+			// 开启定时器让li循环改变样式，当n为当前div下的allLi.length - 1时，清空定时器，然后让n为0，并且让下一个div显示，否则n++，将第n个div的className设置为active
+			timer = setInterval(function (){
+
+				// 当n=当前div下的最后一个li时，让下一个div和对应的span显示，同时继续执行函数
+				if( n === allLi.length - 1 ){
+
+					clearInterval(timer);
+
+					n = 0;
+
+					state++;
+
+					for( var i = 0; i < aDiv.length; i++ ){
+						aDiv[i].style.display = "none";
+						allSpan[i].className = "";
+					}
+
+					aDiv[state%aDiv.length].style.display = "block";
+					allSpan[state%aDiv.length].className = "show";
+
+					fn(aDiv[state%aDiv.length]);
+
+
+				} else {
+
+					n++;
+					for( var i = 0; i < allLi.length; i++ ){
+						allLi[i].className = "none";
+						allImg[i].className = "";
+					}
+					allLi[n].className = "active";
+					allImg[n].className = "active";
+
+				}
+
+			},500)
+		}
+
+		for( var i = 0; i < aDiv.length; i++ ){
+			func(aDiv[i]);
+		}
+
+		function func(obj){
+
+			var allLis = $("li",obj);
+			var allImg = $("img",obj)
+
+			for( var i = 0; i < allLis.length; i++ ){
+
+				allLis[i].index = i;
+
+				//鼠标移入地时候，清除定时器，循环清空所有的li，给当前滑过的li添加样式，并且让对应的img显示
+				allLis[i].onmouseover = function (){
+					clearInterval(timer);
+					for( var i = 0; i < allLis.length; i++ ){
+						allLis[i].className = "";
+						allImg[i].className = "";
+					}
+					allLis[this.index].className = "active";
+					allImg[this.index].className = "active";
+
+					// 改变n值，移出时从当前的n开始运动
+					n = this.index;
+				}
+				// 移出的时候从当前div下的li开始运动
+				allLis[i].onmouseout = function (){
+					fn(aDiv[state]);
+				}
+			}
+		}
+
+		for( var j = 0; j < allSpan.length; j++ ){
+
+			allSpan[j].index = j;
+			allSpan[j].onmouseover = function (){
+				clearInterval(timer);
+				for( var i = 0; i < allSpan.length; i++ ){
+					allSpan[i].className = "";
+					aDiv[i].style.display = "none";
+				}
+				this.className = "show";
+				aDiv[this.index].style.display = "block";
+
+				// 当鼠标提留在当前展示的span上时，不需要让高亮显示第一个li，没有停留在当前的span上时，需要让下边高亮显示第一个li，让state等于当前索引
+				if( this.index !== state%aDiv.length ){
+					var allLis = $("li",aDiv[this.index]);
+
+					for( var j = 0; j < allLis.length; j++ ){
+						allLis[j].className = "";
+					}
+					allLis[0].className = "active";//让第一个li高亮显示
+					n = 0; //下次从n=0开始展示
+				}
+
+				state = this.index;
+			}
+
+			allSpan[j].onmouseout = function (){
+				fn(aDiv[state]);
+			}
+		} 
+	}
+	
+</script>
+</head>
+
+<body>
+<div id="box">
+	<p id="top">
+		<span class="show">专题</span>
+		<span>视频</span>
+		<span>娱乐</span>
+		<span>照片</span>
+	</p>
+	<div class="show1 oDiv" id="bottom">
+		<img class="active"  src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<img src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list1.jpg" alt="" />
+		<ul>
+			<li class="active" ><a href="#">奇虎360纽交所上市11</a></li>
+			<li><a href="#">2011年IT领袖峰会</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+		</ul>
+	</div>
+	<div class="hide oDiv" id="bottom1">
+		<img src="image_two/list2.jpg" alt="" class="active" />
+		<img src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<ul>
+			<li class="active" ><a href="#">奇虎360纽交所上市22</a></li>
+			<li><a href="#">2011年IT领袖峰会</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+		</ul>
+	</div>
+	<div class="hide oDiv" id="bottom2">
+		<img src="image_two/list2.jpg" alt="" class="active" />
+		<img src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<ul>
+			<li class="active" ><a href="#">奇虎360纽交所上市33</a></li>
+			<li><a href="#">2011年IT领袖峰会</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+		</ul>
+	</div>
+	<div class="hide oDiv" id="bottom3">
+		<img src="image_two/list2.jpg" alt="" class="active" />
+		<img src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt=""/>
+		<img src="image_two/list1.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<img src="image_two/list2.jpg" alt="" />
+		<ul>
+			<li class="active" ><a href="#">奇虎360纽交所上市44</a></li>
+			<li><a href="#">2011年IT领袖峰会</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+			<li ><a href="#">奇虎360纽交所上市33</a></li>
+			<li><a href="#">2011年IT领袖峰会</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+			<li><a href="#">CCBN召开 助三网融合</a></li>
+		</ul>
+	</div>
+	
+	
+</div>
+</body>
+</html>
